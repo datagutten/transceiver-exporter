@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "transceiver-exporter"
+version = "0.1.0"
+description = ""
+authors = ["datagutten <datagutten@datagutten.net>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+prometheus-client = "^0.21.0"
+pyaoscx = "^2.6.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
