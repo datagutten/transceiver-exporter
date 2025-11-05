@@ -32,6 +32,7 @@ if __name__ == '__main__':
     exporter = Exporter()
     devices = []
     for switch in response.json():
+        print(switch['name'])
         if switch['type'] == 'Aruba CX':
             try:
                 device = transceiver.ArubaCXTransceiver(exporter.gauges, switch['ip'], os.getenv('USER_NAME'),
@@ -40,13 +41,13 @@ if __name__ == '__main__':
                 device.get_data()
                 devices.append(device)
             except PyaoscxError as e:
-                print(switch['name'], e)
+                print(e)
                 continue
             except ValueError as e:
                 print(e)
                 continue
             except RequestException as e:
-                print(switch['name'], e)
+                print(e)
                 continue
 
     while True:
