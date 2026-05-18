@@ -52,8 +52,8 @@ class ArubaCXTransceiver(TransceiverBase):
                     'interface': interface_name,
                 }
                 if 'tx_power' in interface['pm_info']:
-                    self.gauges['TX_POWER'].labels(**labels).set(mW2dBm(interface['pm_info']['tx_power']))
-                    self.gauges['RX_POWER'].labels(**labels).set(mW2dBm(interface['pm_info']['rx_power']))
+                    self.gauges['TX_POWER'].labels(**labels).set(mW2dBm(interface['pm_info'].get('tx_power', 0)))
+                    self.gauges['RX_POWER'].labels(**labels).set(mW2dBm(interface['pm_info'].get('rx_power', 0)))
                 elif labels['transceiver_type'].find('SFP-DAC') == -1:
                     print('No TX power found for %s interface %s SFP type %s' % (
                         self.name, interface_name, labels['transceiver_type']))
