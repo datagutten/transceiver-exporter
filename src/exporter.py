@@ -1,5 +1,7 @@
+import json
 import os
 import time
+from pathlib import Path
 
 import requests
 from prometheus_client import generate_latest, Summary, Gauge, CollectorRegistry, REGISTRY
@@ -31,13 +33,26 @@ if __name__ == '__main__':
     response.raise_for_status()
     exporter = Exporter()
     devices = []
+    login_file = Path(os.environ.get('LOGIN_FILE', 'logins.json'))
+    if login_file.exists():
+        with open(login_file) as fp:
+            logins = json.load(fp)
+    else:
+        logins = {}
+
     for switch in response.json():
         print(switch['name'])
         if switch['type'] == 'Aruba CX':
             try:
-                device = transceiver.ArubaCXTransceiver(exporter.gauges, switch['ip'], os.getenv('USER_NAME'),
-                                                        os.getenv('PASSWORD'),
-                                                        switch['name'], switch['software'])
+                if switch['name'] not in logins:
+                    device = transceiver.ArubaCXTransceiver(exporter.gauges, switch['ip'], os.getenv('USER_NAME'),
+                                                            os.getenv('PASSWORD'),
+                                                            switch['name'], switch['software'])
+                else:
+                    print(f'Login override {switch["name"]}')
+                    username, password = logins.get(switch['name'], [None, None])
+                    device = transceiver.ArubaCXTransceiver(exporter.gauges, switch['ip'], username,
+                                                            password, switch['name'], switch['software'])
                 device.get_data()
                 devices.append(device)
             except PyaoscxError as e:
