@@ -67,13 +67,40 @@ class ArubaCXTransceiver(TransceiverBase):
         interfaces = self.session.get(
             self._build_uri('system/interfaces?attributes=l1_state,pm_info,pm_monitor,pm_state&depth=2')).json()
         for interface_name, interface in interfaces.items():
+            # interface_info = self.session.get(self._build_uri('system/interfaces/%s?attributes=l1_state,pm_info,pm_monitor,pm_state' % urllib.parse.quote_plus(
+            #                                               interface_name))).json()
+            if 'pm_info' not in interface and 'pm_monitor' not in interface:
+                print(f'{self.name}: Interface {interface_name} has no pm_info and no pm_monitor')
+                continue
+            if not interface['pm_info']:
+                print(f'{self.name}: Interface {interface_name} pm_info is None')
+                continue
+
+            if 'vendor_part_number' in interface['pm_info']:
+                transceiver_type = interface['pm_info']['vendor_part_number']
+            elif 'xcvr_desc' in interface['pm_info']:
+                transceiver_type = interface['pm_info']['xcvr_desc']
+            else:
+                transceiver_type = None
+
+            labels = {
+                'device_ip': self.ip,
+                'device_name': self.name,
+                'transceiver_type': transceiver_type,
+                'interface': interface_name,
+            }
+
+            if 'pm_monitor' in interface and interface['pm_monitor'] is not None and '1' in interface['pm_monitor']:
+                if 'tx_power' in interface['pm_monitor']['1']:
+                    self.gauges['TX_POWER'].labels(**labels).set(mW2dBm(interface['pm_monitor']['1']['tx_power']))
+                else:
+                    print('No TX_POWER in pm_monitor for %s' % interface_name)
+                if 'rx_power' in interface['pm_monitor']['1']:
+                    self.gauges['RX_POWER'].labels(**labels).set(mW2dBm(interface['pm_monitor']['1']['rx_power']))
+                else:
+                    print('No RX_POWER in pm_monitor for %s' % interface_name)
             if 'pm_info' in interface and interface['pm_info'] and interface['pm_info']['dom_supported']:
-                labels = {
-                    'device_ip': self.aos_session.ip,
-                    'device_name': self.name,
-                    'transceiver_type': interface['pm_info']['vendor_part_number'] or interface['pm_info']['xcvr_desc'],
-                    'interface': interface_name,
-                }
+
                 if 'tx_power' in interface['pm_info']:
                     self.gauges['TX_POWER'].labels(**labels).set(mW2dBm(interface['pm_info'].get('tx_power', 0)))
                     self.gauges['RX_POWER'].labels(**labels).set(mW2dBm(interface['pm_info'].get('rx_power', 0)))

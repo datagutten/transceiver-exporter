@@ -24,6 +24,7 @@ RUN pip install --upgrade pip
 RUN pip install --no-cache /wheels/*
 
 COPY ./src .
+ENV LOGIN_FILE=/logins.json
 
 CMD ["python", "./exporter.py"]
 EXPOSE 8000
