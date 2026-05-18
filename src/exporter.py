@@ -6,7 +6,6 @@ from pathlib import Path
 import requests
 from prometheus_client import generate_latest, Summary, Gauge, CollectorRegistry, REGISTRY
 from prometheus_client import start_http_server, Summary
-from pyaoscx.exceptions.pyaoscx_error import PyaoscxError
 from requests.exceptions import RequestException
 
 import transceiver
@@ -55,9 +54,6 @@ if __name__ == '__main__':
                                                             password, switch['name'], switch['software'])
                 device.get_data()
                 devices.append(device)
-            except PyaoscxError as e:
-                print(e)
-                continue
             except ValueError as e:
                 print(e)
                 continue
